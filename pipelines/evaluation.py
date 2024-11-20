@@ -5,6 +5,7 @@ from tqdm import tqdm
 import numpy as np
 
 from ..dataset import VidHalDataset
+from ..utils import generate_display_order
 
 class EvaluationPipeline:
     def __init__(
@@ -16,25 +17,7 @@ class EvaluationPipeline:
     ):
         self.predictions = predictions
         self.dataset = dataset
-        self.option_display_order = option_display_order if option_display_order is not None else self.generate_display_order()
-
-    def generate_display_order(self):
-        option_display_order = {}
-        for i in tqdm(range(len(self.dataset))):
-            example = self.dataset[i]
-            video_id, captions = example["video_id"], example["captions"]
-            caption_keys = list(captions.keys())
-            random.shuffle(caption_keys)
-
-            # Assign permuted options (A, B, C) to actual order (1, 2, 3)
-            option_prefix = list(string.ascii_uppercase)
-            option_to_rank = OrderedDict(
-                {option_prefix[i]: option for i, option in enumerate(caption_keys)}
-            )
-
-            option_display_order[video_id] = option_to_rank
-
-        return option_to_rank
+        self.option_display_order = option_display_order if option_display_order is not None else generate_display_order(dataset)
 
     def evaluate(self):
         raise NotImplementedError
