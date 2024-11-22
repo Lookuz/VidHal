@@ -1,5 +1,6 @@
 import random
 import string
+import argparse
 import numpy as np
 import torch
 from decord import VideoReader
@@ -7,14 +8,39 @@ import io
 from tqdm import tqdm
 from collections import OrderedDict
 
-option_display_order = None
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+
+    # Dataset Parameters
+    parser.add_argument("--annotations_path", type=str, required=True)
+    parser.add_argument("--videos_path", type=str, required=True)
+    parser.add_argument("--options_path", type=str, default=None)
+    parser.add_argument("--num_frames", type=int, default=4)
+
+    # Inference Parameters
+    parser.add_argument("--model", type=str, default="random")
+    parser.add_argument("--task", type=str, required=True)
+    parser.add_argument("--num_captions", type=int, default=3)
+
+    # Evaluation Parameters
+    parser.add_argument("--predictions_path", type=str, default=None)
+    parser.add_argument("--save_path", type=str, default=None)
+
+    # TODO: Add more parameters if needed
+    args = parser.parse_args()
+
+    return args
+
+OPTION_DISPLAY_ORDER = None
 def generate_display_order(dataset):
     """
     Generates a random option display order if none is provided.
     Maintains a global display order to be used in multiple components, if generating a random order is required
     and one hasn't been generated yet.
     """
-    if option_display_order is None:
+    global OPTION_DISPLAY_ORDER
+    if OPTION_DISPLAY_ORDER is None:
+        OPTION_DISPLAY_ORDER = {}
         for i in tqdm(range(len(dataset))):
             example = dataset[i]
             video_id, captions = example["video_id"], example["captions"]
@@ -27,9 +53,9 @@ def generate_display_order(dataset):
                 {option_prefix[i]: option for i, option in enumerate(caption_keys)}
             )
 
-            option_display_order[video_id] = option_to_rank
+            OPTION_DISPLAY_ORDER[video_id] = option_to_rank
 
-    return option_display_order
+    return OPTION_DISPLAY_ORDER
 
 """
 Adapted from VideoChat2: https://github.com/OpenGVLab/Ask-Anything/blob/main/video_chat2/dataset/video_utils.py

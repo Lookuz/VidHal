@@ -4,8 +4,8 @@ import json
 import torch
 from tqdm import tqdm
 
-from ...dataset import VidHalDataset
-from ...utils import generate_display_order
+from dataset import VidHalDataset
+from utils import generate_display_order
 
 class VidHalInferencePipeline:
     """
@@ -19,6 +19,7 @@ class VidHalInferencePipeline:
         self, 
         model,
         dataset : VidHalDataset,
+        num_captions = 3,
         option_display_order : dict = None,
         generation_config = {},
         *args, **kwargs
@@ -26,13 +27,17 @@ class VidHalInferencePipeline:
         self.model = model
         self.dataset = dataset
         self.generation_config = generation_config
-        self.option_display_order = option_display_order if option_display_order is not None else generate_display_order(dataset)
+        self.num_captions = num_captions
+        if option_display_order is None:
+            print("No pre-defined option randomization supplied, generating one...")
+            option_display_order = generate_display_order(dataset)
+        self.option_display_order = option_display_order
 
     def format_options_prompt(self, captions, video_id=None, option_to_rank=None):
         """
         Generates the sub-prompt containing line-break separated [option : caption] to be displayed to the model
         """
-        assert option_to_rank is not None and video_id is not None # Either video ID provided to use pre-defined ordering, or custom option ordering must be provided
+        assert option_to_rank is not None or video_id is not None # Either video ID provided to use pre-defined ordering, or custom option ordering must be provided
         if option_to_rank is None:
             option_to_rank = self.option_display_order[video_id]
         options_prompt = "\n".join([f"{option}. {captions[rank]}" for option, rank in option_to_rank.items()])
@@ -79,7 +84,7 @@ class VidHalInferencePipeline:
                 video, video_id, captions = example["video"], example["video_id"], example["captions"]
 
                 # Format caption options to be displayed to the model
-                options_prompt = self.format_options_prompt(video_id=video_id, captions=captions)
+                options_prompt = self.format_options_prompt(captions=captions, video_id=video_id)
                 main_prompt, system_prompt = self.format_prompt(
                     self.main_prompt_instruction, options_prompt, self.system_prompt_instruction
                 )
@@ -93,7 +98,7 @@ class VidHalInferencePipeline:
                 responses[video_id] = response
 
         if save_path is not None:
-            with open(save_path, "r") as f:
+            with open(save_path, "w") as f:
                 json.dump(responses, f, indent=4)
 
 class VidHalMCQAInferencePipeline(VidHalInferencePipeline):
@@ -101,8 +106,6 @@ class VidHalMCQAInferencePipeline(VidHalInferencePipeline):
         "Your task is to watch the video provided carefully, and select the caption that best describes the video. " \
         "Provide your answer only as a single letter representing the option whose caption that best describes the video, without any explanation."
     main_prompt_instruction = "Watch the video provided, and choose the option whose caption describes the video most accurately."
-    def __init__(self, model, dataset, generation_config={}, *args, **kwargs):
-        super().__init__(model, dataset, generation_config, *args, **kwargs)
 
     def process_response(self, response):
         """
@@ -158,17 +161,13 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
         overall_order = []
         # Transform from rank -> caption to option -> caption
         option_to_rank = self.option_display_order[video_id]
-        rank_to_option = {v : k for k, v in option_to_rank.items()}
-        captions = {
-            rank_to_option[rank] : caption for rank, caption in captions.items()
-        }
-        options = sorted(list(captions.keys()))
+        options = sorted(list(option_to_rank.keys()))
         for option_A, option_B in zip(options, options[1:]):
             response = self.prompt_paired_question(video, captions, [option_A, option_B], option_to_rank)
             # Assign incorrect order if response is invalid or incorrect
             correct_order = [x[0] for x in sorted([
                 (option_A, option_to_rank[option_A]), (option_B, option_to_rank[option_B])
-            ], lambda x : int(x[-1]))]
+            ], key=lambda x : int(x[-1]))]
             correct_answer =  correct_order[0]
             relative_order = correct_order if response == correct_answer else list(reversed(correct_order))
 
@@ -196,7 +195,7 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
                     if not response: # Select wrong answer if invalid one provided
                         response = sorted([
                             (target_option, option_to_rank[target_option]), (candidate_option, option_to_rank[candidate_option])
-                        ], lambda x : -int(x[-1]))[0][0]
+                        ], key=lambda x : -int(x[-1]))[0][0]
 
                     if (target_option == option_A and response != target_option) or (target_option == option_B and response == target_option):
                         new_subsequence = elements_to_compare[:i] + [target_option] + elements_to_compare[i:]
@@ -222,10 +221,35 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
                 responses[video_id] = predicted_order
 
         if save_path is not None:
-            with open(save_path, "r") as f:
+            with open(save_path, "w") as f:
                 json.dump(responses, f, indent=4)
 
 class VidHalNaiveOrderingInferencePipeline(VidHalInferencePipeline):
+    system_prompt_instruction = "You are provided with a video and a set of several captions. " \
+        "Your task is to order the captions in order of most to least relevant based on their alignment with the contents of the video. " \
+        "Provide your answer without any further explanation."
+    main_prompt_instruction = "Watch the video provided, and rank the captions below in order from the most accurate to the least accurate in describing the video. " \
+        "Provide your response only as a sequence of comma separated option letters matching the corresponding captions. " \
+        "Do not give any additional explanation for your answer."
+    main_prompt_hint = "For example, if option B contains the caption that best describes the video, option A contains the caption that describes the video second best and " \
+        "option C contains the caption that describes the video least accurately, provide your response as: B, A, C."
+    def __init__(
+        self, model, dataset: VidHalDataset, 
+        num_captions=3, option_display_order: dict = None, 
+        generation_config={},
+        use_hint=True, # Add hint prompt into the main prompt
+        *args, **kwargs):
+        super().__init__(model, dataset, num_captions, option_display_order, generation_config, *args, **kwargs)
+
+        self.use_hint = use_hint
+
+    def format_prompt(
+        self, main_prompt, options_prompt, system_prompt=None, *args, **kwargs
+    ):
+        if self.use_hint:
+            main_prompt = f"{main_prompt}\n{self.main_prompt_hint}"
+        return super().format_prompt(main_prompt, options_prompt, system_prompt, *args, **kwargs)
+
     def process_response(self, response):
         def condense_sequence(sequence):
             """

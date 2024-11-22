@@ -4,8 +4,8 @@ from collections import OrderedDict
 from tqdm import tqdm
 import numpy as np
 
-from ..dataset import VidHalDataset
-from ..utils import generate_display_order
+from dataset import VidHalDataset
+from utils import generate_display_order
 
 class EvaluationPipeline:
     def __init__(
