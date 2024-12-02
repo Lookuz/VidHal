@@ -3,6 +3,7 @@
 VidHal is a benchmark designed to evaluate and analyze video-based hallucinations in Vision-Language Models (VLMs). It features a diverse set of videos covering five key temporal aspects: _Action, Attribute, Object, Event Order_, and _Direction_. To facilitate fine-grained evaluation of video hallucinations, we introduce a novel task of **caption ordering** alongside multiple-choice question answering. For more details, refer to our paper: [VidHal: Benchmarking Hallucinations in Vision LLMs](https://arxiv.org/abs/2411.16771).
 
 ## Updates
+- [02/12/2024] Inference and evaluation code for the evaluated models in our paper are now available.
 - [25/11/2024] The VidHal dataset and evaluation pipeline are now available. Instructions for evaluating your model using our code can be found in the [Model Evaluation](#model-evaluation) section.
 
 ## Getting Started
@@ -89,6 +90,9 @@ python evaluate.py \
 ```
 Similarly to the inference stage, command-line scripts for running `evaluate.py` are provided in the `scripts/evaluation` directory.
 
+## Models
+We provide the codebase for evaluating the [VideoChat2](https://github.com/Lookuz/VidHal/blob/master/pipelines/inference/videochat2.py), [VideoLLaMA2](https://github.com/Lookuz/VidHal/blob/master/pipelines/inference/videochat2.py), [mPLUG-Owl3](https://github.com/Lookuz/VidHal/blob/master/pipelines/inference/mplug_owl3.py), and [LLaVA-NeXT-Video](https://github.com/Lookuz/VidHal/blob/master/pipelines/inference/llava.py) models in our paper. The required libraries for each model are installed according to the specifications in their original source code (refer to the acknowledgements section for links to these repositories). Additionally, we include code for performing inference on VidHal using the proprietary models GPT-4o and Gemini, which can be used directly with your corresponding API keys.
+
 ## Evaluation Results
 We evaluate several state-of-the-art video VLMs on the VidHal benchmark and present their results below.
 
@@ -105,6 +109,13 @@ We evaluate several state-of-the-art video VLMs on the VidHal benchmark and pres
 | GPT-4o                 | 0.772 |          0.840         |           0.826           |
 | Gemini-1.5 Flash       | 0.657 |          0.738         |           0.745           |
 | Gemini-1.5 Pro         | 0.671 |          0.765         |           0.753           |
+
+# Acknowledgements
+We sincerely thank the original authors of the following works for making their codebases publicly available, enabling the evaluation of their models on our VidHal benchmark:
+- [VideoChat2](https://github.com/OpenGVLab/Ask-Anything)
+- [VideoLLaMA2](https://github.com/DAMO-NLP-SG/VideoLLaMA2)
+- [mPLUG-Owl3](https://github.com/X-PLUG/mPLUG-Owl)
+- [LLaVA-NeXT-Video](https://github.com/LLaVA-VL/LLaVA-NeXT)
 
 # Citation
 If you find our work valuable or useful for your research, please consider citing it.
