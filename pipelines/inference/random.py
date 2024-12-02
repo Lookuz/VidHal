@@ -17,7 +17,7 @@ class RandomInferencePipeline(VidHalInferencePipeline):
     def format_prompt(self, main_prompt, options_prompt, system_prompt=None, *args, **kwargs):
         return f"{main_prompt}\n\n{options_prompt}", system_prompt
     
-    def generate_response(self, model, video, main_prompt, system_prompt=None, generation_config=..., *args, **kwargs):
+    def generate_response(self, video, main_prompt, system_prompt=None, generation_config=..., *args, **kwargs):
         if "choose" in main_prompt:
             options = list(set(re.findall(r'\b[A-Z]\b', main_prompt)))
             return random.choice(options)

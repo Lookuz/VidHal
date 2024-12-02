@@ -1,77 +1,15 @@
+import os
 import random
-import string
-import argparse
 import numpy as np
 import torch
 from decord import VideoReader
 import io
-from tqdm import tqdm
-from collections import OrderedDict
 
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-
-    # Dataset parameters
-    parser.add_argument("--annotations_path", type=str, required=True)
-    parser.add_argument("--videos_path", type=str, required=True)
-    parser.add_argument("--options_path", type=str, default=None)
-    parser.add_argument("--num_frames", type=int, default=4)
-
-    # Inference parameters
-    parser.add_argument("--task", type=str, required=True)
-    parser.add_argument("--num_captions", type=int, default=3)
-
-    # Model parameters
-    parser.add_argument("--model", type=str, default="random")
-    parser.add_argument("--model_path", type=str, default=None)
-    parser.add_argument("--load_4bit", action="store_true")
-    parser.add_argument("--load_8bit", action="store_true")
-    # LLaVA-NeXT-Video parameters
-    parser.add_argument("--mm_newline_position", type=str, default="no_token")
-    parser.add_argument("--mm_spatial_pool_mode", type=str, default="average")
-    parser.add_argument("--mm_pooling_position", type=str, default="after")
-    # VideoChat2 parameters
-    parser.add_argument("--config_path", type=str, default=None)
-    # Proprietary model parameters
-    parser.add_argument("--api_key", type=str, default=None)
-
-    # Evaluation parameters
-    parser.add_argument("--predictions_path", type=str, default=None)
-    parser.add_argument("--save_path", type=str, default=None)
-
-    # TODO: Add more parameters if needed
-    args = parser.parse_args()
-
-    return args
-
-OPTION_DISPLAY_ORDER = None
-def generate_display_order(dataset):
-    """
-    Generates a random option display order if none is provided.
-    Maintains a global display order to be used in multiple components, if generating a random order is required
-    and one hasn't been generated yet.
-    """
-    global OPTION_DISPLAY_ORDER
-    if OPTION_DISPLAY_ORDER is None:
-        OPTION_DISPLAY_ORDER = {}
-        for i in tqdm(range(len(dataset))):
-            example = dataset[i]
-            video_id, captions = example["video_id"], example["captions"]
-            caption_keys = list(captions.keys())
-            random.shuffle(caption_keys)
-
-            # Assign permuted options (A, B, C) to actual order (1, 2, 3)
-            option_prefix = list(string.ascii_uppercase)
-            option_to_rank = OrderedDict(
-                {option_prefix[i]: option for i, option in enumerate(caption_keys)}
-            )
-
-            OPTION_DISPLAY_ORDER[video_id] = option_to_rank
-
-    return OPTION_DISPLAY_ORDER
+from PIL import Image
+from torchvision.transforms import ToTensor
 
 """
-Adapted from VideoChat2: https://github.com/OpenGVLab/Ask-Anything/blob/main/video_chat2/dataset/video_utils.py
+VideoChat2 video reading functions
 """
 def get_frame_indices(num_frames, vlen, sample='rand', fix_start=None, fps=1, max_num_frames=-1, clip=None):
     if sample in ["rand", "middle"]: # Uniform sampling
@@ -149,3 +87,15 @@ def read_video(
     frames = torch.tensor(frames.asnumpy()).permute(0, 3, 1, 2)  # (T, C, H, W), torch.uint8
     
     return frames, frame_indices, float(fps)
+
+def read_frames(video_path, num_frames, sample='rand', fps=30, clip=None):
+    vlen = len(os.listdir(video_path))
+
+    frame_indices = get_frame_indices(num_frames, vlen, sample=sample, fps=fps, max_num_frames=vlen - 1, clip=clip)
+
+    tensor_transform = ToTensor()
+    frames = torch.stack([
+        tensor_transform(Image.open(os.path.join(video_path, f"{frame_index:05d}.jpg"))) for frame_index in frame_indices
+    ])
+
+    return frames

@@ -60,7 +60,6 @@ class VidHalInferencePipeline:
     
     def generate_response(
         self, 
-        model, 
         video, 
         main_prompt, system_prompt=None,
         generation_config={},
@@ -81,7 +80,7 @@ class VidHalInferencePipeline:
         with torch.inference_mode(), torch.no_grad():
             for i in tqdm(range(len(self.dataset))):
                 example = self.dataset[i]
-                video, video_id, captions = example["video"], example["video_id"], example["captions"]
+                video, video_id, captions, video_path = example["video"], example["video_id"], example["captions"], example["video_path"]
 
                 # Format caption options to be displayed to the model
                 options_prompt = self.format_options_prompt(captions=captions, video_id=video_id)
@@ -91,7 +90,10 @@ class VidHalInferencePipeline:
 
                 # Generate response from the model
                 response = self.generate_response(
-                    self.model, video, main_prompt=main_prompt, system_prompt=system_prompt, generation_config=self.generation_config
+                   video=video, main_prompt=main_prompt, system_prompt=system_prompt, 
+                   generation_config=self.generation_config,
+                   # For proprietary models
+                   image_path=video_path
                 )
                 response = self.process_response(response)
 
