@@ -69,7 +69,7 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
         """
         Takes in a sequence of numbers representing the hallucination extent
         """
-        relevance_scores = [self.num_captions + 1 - int(self.option_display_order[i]) for i in order]
+        relevance_scores = [self.num_captions + 1 - int(i) for i in order]
         return sum([score / np.log2(i + 2) for i, score in enumerate(relevance_scores)])        
     
     def compute_ndcg(self, order, option_to_rank):
@@ -100,7 +100,7 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
 
             option_to_rank = self.option_display_order[video_id]
             # Predictions expected to be either in comma separated string form (e.g 'A, B, C') or list form (e.g. ['A', 'B', 'C'])
-            prediction = self.predictions(video_id)
+            prediction = self.predictions[video_id]
             if not isinstance(prediction, list):
                 prediction_key = prediction
                 prediction = [x.strip() for x in prediction.split(",")]
@@ -117,7 +117,7 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
                 ndcg[key] += ndcg_
                 total[key] += 1
 
-            for aspect in ndcg:
-                ndcg[aspect] = ndcg[aspect] / total[aspect]
+        for aspect in ndcg:
+            ndcg[aspect] = ndcg[aspect] / total[aspect]
 
         return {"ndcg" : ndcg, "frequency" : order_prediction_frequency}

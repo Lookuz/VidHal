@@ -1,13 +1,29 @@
 from pipelines.inference.base import VidHalInferencePipeline
 from pipelines.inference.random import *
-from pipelines.inference.videollama2 import *
-from pipelines.inference.llava import *
-from pipelines.inference.mplug_owl3 import *
-from pipelines.inference.videochat2 import *
-from pipelines.inference.gpt4 import *
+# from pipelines.inference.gpt4 import *
 from pipelines.inference.gemini import *
 
 def get_inference_pipeline(name, task) -> VidHalInferencePipeline:
+    # Lazy loading of modules due to differing requirements
+    if name == "videollama2":
+        from pipelines.inference.videollama2 import (
+            VideoLLaMA2MCQAInferencePipeline, VideoLLaMA2NaiveOrderingInferencePipeline, VideoLLaMA2RelativeOrderingInferencePipeline
+        )
+    elif name == "llava-next-video":
+        from pipelines.inference.llava import (
+            LLaVANeXTVideoMCQAInferencePipeline, LLaVANeXTVideoNaiveOrderingInferencePipeline, LLaVANeXTVideoRelativeOrderingInferencePipeline
+        )
+    elif name == "mplug_owl3":
+        from pipelines.inference.mplug_owl3 import (
+            mPLUGOwl3MCQAInferencePipeline, mPLUGOwl3NaiveOrderingInferencePipeline, mPLUGOwl3RelativeOrderingInferencePipeline
+        )
+    elif name == "videochat2":
+        from pipelines.inference.videochat2 import (
+            VideoChat2MCQAInferencePipeline, VideoChat2NaiveOrderingInferencePipeline, VideoChat2RelativeOrderingInferencePipeline
+        )
+    elif "moviechat" in name:
+        pass # TODO
+    
     return {
         "random" : {
             "mcqa" : RandomMCQAInferencePipeline,

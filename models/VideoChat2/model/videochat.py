@@ -137,7 +137,7 @@ class VideoChat2Model(Blip2Base):
                     bnb_4bit_compute_dtype=torch.bfloat16
                 )
                 self.language_model = LlamaForCausalLM.from_pretrained(
-                    llama_model_path,\
+                    llama_model_path,
                     quantization_config=quantization_config,
                     # torch_dtype=torch.float16,
                     # load_in_4bit=True,
