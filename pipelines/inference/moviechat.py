@@ -49,8 +49,7 @@ class MovieChatInferencePipeline(VidHalInferencePipeline):
         max_length=2000,
         *args, **kwargs
     ):
-        cur_image = self.get_first_frame(video_path=image_path)
-        print(self.model.device, cur_image.device)
+        cur_image = self.get_first_frame(video_path=image_path).to(self.model.device)
         cur_image = self.model.encode_image(cur_image)
         
         video_emb = self.text_processor.upload_video_without_audio(

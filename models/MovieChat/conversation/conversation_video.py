@@ -246,59 +246,54 @@ class Chat:
         output_text = output_text.split('Assistant:')[-1].strip()
         return output_text, output_token.cpu().numpy()
     
-    def cal_frame(self, video_length):
+    def cal_frame(self, video_length, cur_min, cur_sec, middle_video):
         per_frag_second = video_length / self.n_samples
-        cur_frame = 0
-        num_frames = int(video_length / per_frag_second)
-        return num_frames, cur_frame
-    
-    def cal_frame_middle(self, total_frame, cur_frame):
-        per_frag_frame = total_frame / self.n_samples
-        num_frames = int(cur_frame / per_frag_frame)
-        cur_frame = int(total_frame-per_frag_frame*num_frames)
-        return num_frames, cur_frame
+        if middle_video:
+            cur_seconds = cur_min * 60 + cur_sec
+            num_frames = int(cur_seconds / per_frag_second)
+            per_frame_second = per_frag_second / self.short_memory_length
+            cur_frame = int((cur_seconds-per_frag_second*num_frames)/per_frame_second)
+            return num_frames, cur_frame
+        else:
+            cur_frame = 0
+            num_frames = int(video_length / per_frag_second)
+            return num_frames, cur_frame
 
     def upload_video_without_audio(
         self, video_path, fragment_video_path, cur_image, middle_video, 
-        total_frame=1, cur_frame=1
+        cur_min=0, cur_sec=0
     ):
-        if isinstance(video_path, str):  # is a video path
-            video_length = self.video_duration(video_path) 
-            if middle_video:
-                num_frames, cur_frame = self.cal_frame_middle(total_frame, cur_frame)
-            else:
-                num_frames, cur_frame = self.cal_frame(video_length)
-            if num_frames == 0:
-                video_fragment = self.parse_video_fragment(video_path=video_path, video_length=video_length, n_stage=0, n_samples= self.n_samples)
+        video_length = self.video_duration(video_path) 
+        num_frames, cur_frame = self.cal_frame(video_length, cur_min, cur_sec, middle_video)
+        
+        if num_frames == 0:
+            video_fragment = self.parse_video_fragment(video_path=video_path, video_length=video_length, n_stage=0, n_samples= self.n_samples)
+            video_fragment, _ = self.load_video(
+                video_path=fragment_video_path,
+                n_frms=self.vis_processor.n_frms, 
+                height=224,
+                width=224,
+            ) 
+            video_fragment = self.vis_processor.transform(video_fragment)
+            video_fragment = video_fragment.unsqueeze(0).to(self.device)
+            self.model.encode_short_memory_frame(video_fragment, cur_frame)
+        else:
+            for i in range(num_frames): 
+                video_fragment = self.parse_video_fragment(video_path=video_path, video_length=video_length, n_stage=i)
+                
                 video_fragment, _ = self.load_video(
                     video_path=fragment_video_path,
                     n_frms=self.vis_processor.n_frms, 
                     height=224,
-                    width=224,
-                ) 
-                video_fragment = self.vis_processor.transform(video_fragment)
+                    width=224
+                )
+                video_fragment = self.vis_processor.transform(video_fragment) 
                 video_fragment = video_fragment.unsqueeze(0).to(self.device)
-                self.model.encode_short_memory_frame(video_fragment, cur_frame)
-            else:
-                for i in range(num_frames): 
-                    video_fragment = self.parse_video_fragment(video_path=video_path, video_length=video_length, n_stage=i)
-                    
-                    video_fragment, _ = self.load_video(
-                        video_path=fragment_video_path,
-                        n_frms=self.vis_processor.n_frms, 
-                        height=224,
-                        width=224
-                    )
-                    video_fragment = self.vis_processor.transform(video_fragment) 
-                    video_fragment = video_fragment.unsqueeze(0).to(self.device)
 
-                    if middle_video and (i + 1)==num_frames:
-                        self.model.encode_short_memory_frame(video_fragment, cur_frame)
-                    else:
-                        self.model.encode_short_memory_frame(video_fragment)
-
-        else:
-            raise NotImplementedError
+                if middle_video and (i + 1)==num_frames:
+                    self.model.encode_short_memory_frame(video_fragment, cur_frame)
+                else:
+                    self.model.encode_short_memory_frame(video_fragment)
 
         video_emb, _ = self.model.encode_long_video(cur_image, middle_video)
 
