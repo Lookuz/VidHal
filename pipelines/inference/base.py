@@ -138,7 +138,7 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
 
         return option_to_rank
     
-    def prompt_paired_question(self, video, captions, options, option_to_rank):
+    def prompt_paired_question(self, video, captions, options, option_to_rank, video_path=None):
         # Reorder keys (e.g. A, C -> A, B) and track the mapping
         display_options = list(string.ascii_uppercase)[:len(options)]
         remapped_option_to_rank = {display_options[i] : option_to_rank[option] for i, option in enumerate(options)}
@@ -150,7 +150,8 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
             self.main_prompt_instruction, options_prompt, self.system_prompt_instruction
         )
         response = self.generate_response(
-            self.model, video, main_prompt=main_prompt, system_prompt=system_prompt, generation_config=self.generation_config
+            self.model, video, main_prompt=main_prompt, system_prompt=system_prompt, generation_config=self.generation_config,
+            image_path=video_path
         )
 
         # Process response and map back to original
@@ -159,13 +160,13 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
 
         return response
     
-    def prompt_relative_ordering(self, video, video_id, captions):
+    def prompt_relative_ordering(self, video, video_id, captions, video_path=None):
         overall_order = []
         # Transform from rank -> caption to option -> caption
         option_to_rank = self.option_display_order[video_id]
         options = sorted(list(option_to_rank.keys()))
         for option_A, option_B in zip(options, options[1:]):
-            response = self.prompt_paired_question(video, captions, [option_A, option_B], option_to_rank)
+            response = self.prompt_paired_question(video, captions, [option_A, option_B], option_to_rank, video_path=video_path)
             # Assign incorrect order if response is invalid or incorrect
             correct_order = [x[0] for x in sorted([
                 (option_A, option_to_rank[option_A]), (option_B, option_to_rank[option_B])
@@ -193,7 +194,7 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
                 target_option = option_B if option_A in overall_order else option_A
                 # Compare with candidates til unique ordering can be constructed
                 for i, candidate_option in enumerate(elements_to_compare):
-                    response = self.prompt_paired_question(video, captions, sorted([target_option, candidate_option]), option_to_rank)
+                    response = self.prompt_paired_question(video, captions, sorted([target_option, candidate_option]), option_to_rank, video_path=video_path)
                     if not response: # Select wrong answer if invalid one provided
                         response = sorted([
                             (target_option, option_to_rank[target_option]), (candidate_option, option_to_rank[candidate_option])
@@ -218,8 +219,8 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
         with torch.inference_mode(), torch.no_grad():
             for i in tqdm(range(len(self.dataset))):
                 example = self.dataset[i]
-                video, video_id, captions = example["video"], example["video_id"], example["captions"]
-                predicted_order = self.prompt_relative_ordering(video, video_id, captions)
+                video, video_id, captions, video_path = example["video"], example["video_id"], example["captions"], example["video_path"]
+                predicted_order = self.prompt_relative_ordering(video, video_id, captions, video_path=video_path)
                 responses[video_id] = predicted_order
 
         if save_path is not None:
