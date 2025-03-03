@@ -82,16 +82,11 @@ class VideoChat2ChatProcessor:
             output_ids = output_ids[1:]
         if output_ids[0] == 1:  # some users find that there is a start token <s> at the beginning. remove it
             output_ids = output_ids[1:]
-        if output_ids.shape[0] <= 1:
-            output_text = model.lm_tokenizer.decode(output_ids, add_special_tokens=False)
-            output_text = output_text.split('###')[0]  # remove the stop sign '###'
-            output_text = output_text.split('Assistant:')[-1].strip()
-            conv.messages[-1][1] = output_text
-        # Multiple responses
-        else:
-            output_text = model.lm_tokenizer.batch_decode(output_ids, add_special_tokens=False)
-            output_text = [x.split("###")[0].split('Assistant:')[-1].strip() for x in output_text]
-            conv.messages[-1][1] = "\n".join(output_text)
+                
+        output_text = model.lm_tokenizer.decode(output_ids, add_special_tokens=False)
+        output_text = output_text.split('###')[0]  # remove the stop sign '###'
+        output_text = output_text.split('Assistant:')[-1].strip()
+        conv.messages[-1][1] = output_text
 
         return output_text, output_ids.cpu().numpy(), conv    
 
