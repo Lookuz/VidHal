@@ -32,6 +32,8 @@ def parse_arguments():
     parser.add_argument("--mm_pooling_position", type=str, default="after")
     # VideoChat2 parameters
     parser.add_argument("--config_path", type=str, default=None)
+    # MovieChat parameters
+    parser.add_argument("--fragment_video_path", type=str, default=None)
     # Proprietary model parameters
     parser.add_argument("--api_key", type=str, default=None)
 

@@ -12,12 +12,13 @@ from models.MovieChat.conversation.conversation_video import Chat
 
 class MovieChatInferencePipeline(VidHalInferencePipeline):
     def __init__(self, 
-        dataset: VidHalDataset, model, vis_processor, text_processor : Chat,
+        dataset: VidHalDataset, model, vis_processor, text_processor : Chat, fragment_video_path=None,
         num_captions=3, option_display_order: dict = None, generation_config=..., *args, **kwargs):
         super().__init__(model, dataset, num_captions, option_display_order, generation_config, *args, **kwargs)
 
         self.vis_processor = text_processor.vis_processor
         self.text_processor = text_processor
+        self.fragment_video_path = fragment_video_path
 
     def format_prompt(self, main_prompt, options_prompt, system_prompt="", *args, **kwargs):
         return f"{main_prompt}\n\n{options_prompt}", system_prompt
@@ -49,6 +50,9 @@ class MovieChatInferencePipeline(VidHalInferencePipeline):
         max_length=2000,
         *args, **kwargs
     ):
+        if fragment_video_path is None:
+            fragment_video_path = self.fragment_video_path
+
         cur_image = self.get_first_frame(video_path=image_path).to(self.model.device)
         cur_image = self.model.encode_image(cur_image)
         
@@ -59,8 +63,10 @@ class MovieChatInferencePipeline(VidHalInferencePipeline):
             cur_image = cur_image, 
             middle_video = middle_video
         )
+        if system_prompt is not None:
+            main_prompt = f"{system_prompt}\n\n{main_prompt}"
 
-        response = self.text_processor.answer(
+        response, _ = self.text_processor.answer(
             img_list=[video_emb],
             input_text=main_prompt,
             max_new_tokens=max_new_tokens,
@@ -72,17 +78,18 @@ class MovieChatInferencePipeline(VidHalInferencePipeline):
             temperature=temperature,
             max_length=max_length
         )
+        self.model.clear_memory_buffers()
 
         return response
 
 class MovieChatMCQAInferencePipeline(MovieChatInferencePipeline, VidHalMCQAInferencePipeline):
-    def __init__(self, dataset, model, vis_processor, text_processor, num_captions=3, option_display_order = None, generation_config=..., *args, **kwargs):
-        super().__init__(dataset, model, vis_processor, text_processor, num_captions, option_display_order, generation_config, *args, **kwargs)
+    def __init__(self, dataset: VidHalDataset, model, vis_processor, text_processor: Chat, fragment_video_path=None, num_captions=3, option_display_order: dict = None, generation_config=..., *args, **kwargs):
+        super().__init__(dataset, model, vis_processor, text_processor, fragment_video_path, num_captions, option_display_order, generation_config, *args, **kwargs)
 
 class MovieChatNaiveOrderingInferencePipeline(MovieChatInferencePipeline, VidHalNaiveOrderingInferencePipeline):
-    def __init__(self, dataset, model, vis_processor, text_processor, num_captions=3, option_display_order = None, generation_config=..., *args, **kwargs):
-        super().__init__(dataset, model, vis_processor, text_processor, num_captions, option_display_order, generation_config, *args, **kwargs)
-
+    def __init__(self, dataset: VidHalDataset, model, vis_processor, text_processor: Chat, fragment_video_path=None, num_captions=3, option_display_order: dict = None, generation_config=..., *args, **kwargs):
+        super().__init__(dataset, model, vis_processor, text_processor, fragment_video_path, num_captions, option_display_order, generation_config, *args, **kwargs)
+    
 class MovieChatRelativeOrderingInferencePipeline(MovieChatInferencePipeline, VidHalRelativeOrderingInferencePipeline):
-    def  __init__(self, dataset, model, vis_processor, text_processor, num_captions=3, option_display_order = None, generation_config=..., *args, **kwargs):
-        super().__init__(dataset, model, vis_processor, text_processor, num_captions, option_display_order, generation_config, *args, **kwargs)
+    def __init__(self, dataset: VidHalDataset, model, vis_processor, text_processor: Chat, fragment_video_path=None, num_captions=3, option_display_order: dict = None, generation_config=..., *args, **kwargs):
+        super().__init__(dataset, model, vis_processor, text_processor, fragment_video_path, num_captions, option_display_order, generation_config, *args, **kwargs)

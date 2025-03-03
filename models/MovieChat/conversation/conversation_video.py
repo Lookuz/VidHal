@@ -148,10 +148,11 @@ class Chat:
         video = CompositeVideoClip([VideoFileClip(video_path).subclip(start_time,end_time)])
         return video
     
-    def parse_video_fragment(self, video_path, video_length, n_stage = 0):
+    def parse_video_fragment(self, video_path, fragment_video_path, video_length, n_stage = 0):
         decord.bridge.set_bridge("torch")
         per_video_length = video_length / self.n_samples
         fragment_video = self.capture_video(video_path, per_video_length, n_stage)
+        fragment_video.write_videofile(fragment_video_path)
         return fragment_video
     
     def video_duration(self, filename):
@@ -267,7 +268,9 @@ class Chat:
         num_frames, cur_frame = self.cal_frame(video_length, cur_min, cur_sec, middle_video)
         
         if num_frames == 0:
-            video_fragment = self.parse_video_fragment(video_path=video_path, video_length=video_length, n_stage=0, n_samples= self.n_samples)
+            video_fragment = self.parse_video_fragment(
+                video_path=video_path, fragment_video_path=fragment_video_path,
+                video_length=video_length, n_stage=0, n_samples=self.n_samples)
             video_fragment, _ = self.load_video(
                 video_path=fragment_video_path,
                 n_frms=self.vis_processor.n_frms, 
@@ -279,8 +282,9 @@ class Chat:
             self.model.encode_short_memory_frame(video_fragment, cur_frame)
         else:
             for i in range(num_frames): 
-                video_fragment = self.parse_video_fragment(video_path=video_path, video_length=video_length, n_stage=i)
-                
+                video_fragment = self.parse_video_fragment(
+                    video_path=video_path, fragment_video_path=fragment_video_path,
+                    video_length=video_length, n_stage=i)
                 video_fragment, _ = self.load_video(
                     video_path=fragment_video_path,
                     n_frms=self.vis_processor.n_frms, 

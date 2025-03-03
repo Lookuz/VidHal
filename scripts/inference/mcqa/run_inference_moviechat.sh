@@ -4,6 +4,7 @@ annotations_path="vidhal/annotations.json"
 videos_path="vidhal/videos"
 options_path="vidhal/options.json"
 save_path="outputs/inference/mcqa/moviechat.json"
+fragment_video_path="cache/moviechat_fragment.mp4"
 
 python inference.py \
     --model "moviechat" \
@@ -13,4 +14,5 @@ python inference.py \
     --annotations_path $annotations_path \
     --videos_path $videos_path \
     --save_path $save_path \
-    --options_path $options_path
+    --options_path $options_path \
+    --fragment_video_path $fragment_video_path

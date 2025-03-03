@@ -240,6 +240,16 @@ class MovieChat(Blip2Base):
                 self.frame_position_embeddings.append(q_i)
         self.frame_position_embeddings = torch.cat(self.frame_position_embeddings, dim = 0)
 
+    def clear_memory_buffers(self):
+        # Clear existing tensors
+        del self.long_memory_buffer
+        del self.short_memory_buffer
+        del self.temp_short_memory 
+
+        self.long_memory_buffer = []
+        self.short_memory_buffer = []
+        self.temp_short_memory = []
+    
     def vit_to_cpu(self):
         self.ln_vision.to("cpu")
         self.ln_vision.float()
@@ -335,8 +345,8 @@ class MovieChat(Blip2Base):
             cur_video = []
             cur_pos = []
             for i in range(len(video_features)):
-                    cur_pos.append(self.frame_position_embeddings[i])
-                    cur_video.append(video_features[i])
+                cur_pos.append(self.frame_position_embeddings[i])
+                cur_video.append(video_features[i])
             
             cur_pos = [j.unsqueeze(0) for j in cur_pos]
             cur_video = [j.unsqueeze(0) for j in cur_video]
@@ -370,8 +380,8 @@ class MovieChat(Blip2Base):
             cur_video = []
             cur_pos = []
             for i in range(len(self.long_memory_buffer)):
-                    cur_pos.append(self.frame_position_embeddings[i])
-                    cur_video.append(self.long_memory_buffer[i])
+                cur_pos.append(self.frame_position_embeddings[i])
+                cur_video.append(self.long_memory_buffer[i])
             
             cur_pos = [j.unsqueeze(0) for j in cur_pos]
             cur_position_embeddings = torch.cat(cur_pos, dim=0)

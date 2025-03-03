@@ -39,7 +39,10 @@ if __name__ == "__main__":
         model_path=args.model_path,
         num_captions=args.num_captions, 
         option_display_order=option_display_order,
-        api_key=api_key
+        # For proprietary nmodels
+        api_key=api_key,
+        # For MovieChat
+        fragment_video_path=args.fragment_video_path
         # TODO: Additional arguments if any are added
     )
     os.makedirs(os.path.dirname(args.save_path), exist_ok=True)

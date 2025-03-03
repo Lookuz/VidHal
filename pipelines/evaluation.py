@@ -76,8 +76,9 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
         """
         Takes in a sequence of options representing the captions
         """
-        # NOTE: Ignore partial ordering for now. To revisit later.
-        if len(order) < self.num_captions: return 0.
+        # NOTE: Ignore partial ordering or repeated ordering
+        if len(order) != self.num_captions or len(set(order)) != self.num_captions: 
+            return 0.
         order = [option_to_rank[x] for x in order] 
 
         ndcg = self.compute_dcg(order)
@@ -112,7 +113,9 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
             else:
                 order_prediction_frequency[prediction_key] = 1
 
+            print(f"Prediction: {prediction}, Option-to-Rank: {option_to_rank}")
             ndcg_ = self.compute_ndcg(prediction, option_to_rank)
+            print(f"NDCG: {ndcg_}")
             for key in [aspect, "overall"]:
                 ndcg[key] += ndcg_
                 total[key] += 1
