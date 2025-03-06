@@ -113,9 +113,7 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
             else:
                 order_prediction_frequency[prediction_key] = 1
 
-            print(f"Prediction: {prediction}, Option-to-Rank: {option_to_rank}")
             ndcg_ = self.compute_ndcg(prediction, option_to_rank)
-            print(f"NDCG: {ndcg_}")
             for key in [aspect, "overall"]:
                 ndcg[key] += ndcg_
                 total[key] += 1

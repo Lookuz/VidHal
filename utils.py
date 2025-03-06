@@ -147,6 +147,9 @@ def read_video(
     frame_indices = get_frame_indices(
         num_frames, vlen, sample=sample, fix_start=fix_start, fps=fps, max_num_frames=vlen - 1, clip=clip
     )
-    frames = video_reader.get_batch(frame_indices).permute(0, 3, 1, 2)  # (T, C, H, W), torch.uint8
+    frames = video_reader.get_batch(frame_indices)
+    if not isinstance(frames, torch.Tensor):
+        frames = torch.tensor(frames.asnumpy())
+    frames = frames.permute(0, 3, 1, 2)  # (T, C, H, W), torch.uint8
     
     return frames, frame_indices, float(fps)
