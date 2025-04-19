@@ -110,6 +110,70 @@ We evaluate several state-of-the-art video VLMs on the VidHal benchmark and pres
 | Gemini-1.5 Flash       | 0.657 |          0.738         |           0.745           |
 | Gemini-1.5 Pro         | 0.671 |          0.765         |           0.753           |
 
+# Demo
+
+We present several demo videos from VidHal below.
+
+### Action
+<video width="480" controls>
+  <source src="demo/action_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+🟩 A dog is driving a car.
+
+🟧 A dog is sitting in a car.
+
+🟥 A dog is washing a car.
+
+### Attribute
+<video width="480" controls>
+  <source src="demo/attribute_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+🟩 Glacier breaking and falling into water.
+
+🟧 Glacier rapidly melting and disappearing into water.
+
+🟥 Glacier slowly forming from still water.
+
+### Direction
+<video width="480" controls>
+  <source src="demo/direction_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+🟩 A gray cylinder moves down and to the right.
+
+🟧 A gray cylinder moves down and to the left.
+
+🟥 A gray cylinder moves up and to the left.
+
+### Object
+<video width="480" controls>
+  <source src="demo/object_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+🟩 Person puts down a towel.
+
+🟧 Person puts down a bedsheet.
+
+🟥 Person puts down a pillow.
+
+### Event Order
+<video width="480" controls>
+  <source src="demo/order_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+🟩 Dolphins swim towards the shore, emerges from the water and get fed with fish.
+
+🟧 Dolphins emerge from the water, swim towards the shore and get fed with fish.
+
+🟥 Dolphins get fed with fish, swim towards the shore and emerges from the water.
+
 # Acknowledgements
 We sincerely thank the original authors of the following works for making their codebases publicly available, enabling the evaluation of their models on our VidHal benchmark:
 - [VideoChat2](https://github.com/OpenGVLab/Ask-Anything)
