@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidHal: Benchmarking Hallucinations in Vision LLMs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+            text-align: center;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 80%;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        p {
+            font-size: 16px;
+            color: #555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .video-container {
+            margin-top: 20px;
+        }
+        video {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+        .captions {
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>VidHal: Benchmarking Hallucinations in Vision LLMs</h1>
+        <p>VidHal evaluates video-based hallucinations in Vision-Language Models (VLMs). It introduces the task of <strong>caption ordering</strong> alongside multiple-choice question answering.</p>
+        <p>For more details, refer to our paper: <a href="https://arxiv.org/abs/2411.16771">VidHal: Benchmarking Hallucinations in Vision LLMs</a>.</p>
+
+        <h2>Dataset Download</h2>
+        <p>The benchmark dataset videos can be downloaded <a href="https://drive.google.com/file/d/1Lrt-ZDv4V09uONAcW34ak7JUNUruHTZl/view?usp=sharing">here</a>.</p>
+
+        <h2>Evaluation Results</h2>
+        <table>
+            <tr>
+                <th>VLM</th>
+                <th>MCQA</th>
+                <th>Naive Caption Ordering</th>
+                <th>Relative Caption Ordering</th>
+            </tr>
+            <tr>
+                <td>GPT-4o</td>
+                <td>0.772</td>
+                <td>0.840</td>
+                <td>0.826</td>
+            </tr>
+            <tr>
+                <td>Gemini-1.5 Pro</td>
+                <td>0.671</td>
+                <td>0.765</td>
+                <td>0.753</td>
+            </tr>
+        </table>
+
+        <h2>Demo Videos</h2>
+
+        <div class="video-container">
+            <h3>Action</h3>
+            <video controls>
+                <source src="demo/action_demo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="captions">
+                <p>🟩 A dog is driving a car.</p>
+                <p>🟧 A dog is sitting in a car.</p>
+                <p>🟥 A dog is washing a car.</p>
+            </div>
+        </div>
+
+        <div class="video-container">
+            <h3>Attribute</h3>
+            <video controls>
+                <source src="demo/attribute_demo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="captions">
+                <p>🟩 Glacier breaking and falling into water.</p>
+                <p>🟧 Glacier rapidly melting and disappearing into water.</p>
+                <p>🟥 Glacier slowly forming from still water.</p>
+            </div>
+        </div>
+
+        <div class="video-container">
+            <h3>Direction</h3>
+            <video controls>
+                <source src="demo/direction_demo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="captions">
+                <p>🟩 A gray cylinder moves down and to the right.</p>
+                <p>🟧 A gray cylinder moves down and to the left.</p>
+                <p>🟥 A gray cylinder moves up and to the left.</p>
+            </div>
+        </div>
+
+        <div class="video-container">
+            <h3>Object</h3>
+            <video controls>
+                <source src="demo/object_demo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="captions">
+                <p>🟩 Person puts down a towel.</p>
+                <p>🟧 Person puts down a bedsheet.</p>
+                <p>🟥 Person puts down a pillow.</p>
+            </div>
+        </div>
+
+        <div class="video-container">
+            <h3>Event Order</h3>
+            <video controls>
+                <source src="demo/order_demo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="captions">
+                <p>🟩 Dolphins swim towards the shore, emerges from the water and get fed with fish.</p>
+                <p>🟧 Dolphins emerge from the water, swim towards the shore and get fed with fish.</p>
+                <p>🟥 Dolphins get fed with fish, swim towards the shore and emerges from the water.</p>
+            </div>
+        </div>
+
+        <h2>Acknowledgements</h2>
+        <p>We thank the authors of the following works for making their codebases publicly available:</p>
+        <ul>
+            <li><a href="https://github.com/OpenGVLab/Ask-Anything">VideoChat2</a></li>
+            <li><a href="https://github.com/DAMO-NLP-SG/VideoLLaMA2">VideoLLaMA2</a></li>
+            <li><a href="https://github.com/X-PLUG/mPLUG-Owl">mPLUG-Owl3</a></li>
+            <li><a href="https://github.com/LLaVA-VL/LLaVA-NeXT">LLaVA-NeXT-Video</a></li>
+        </ul>
+
+        <h2>Citation</h2>
+        <pre>
+@article{choong2024vidhal,
+    title={VidHal: Benchmarking Temporal Hallucinations in Vision LLMs}, 
+    author={Wey Yeh Choong and Yangyang Guo and Mohan Kankanhalli},
+    journal={arXiv preprint arXiv:2411.16771},
+    year={2024}
+}
+        </pre>
+
+    </div>
+
+</body>
+</html>
