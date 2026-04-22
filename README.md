@@ -98,19 +98,29 @@ We provide the codebase for evaluating the [VideoChat2](https://github.com/Looku
 ## Evaluation Results
 We evaluate several state-of-the-art video VLMs on the VidHal benchmark and present their results below.
 
-|           VLM          |  MCQA | Naive Caption Ordering | Relative Caption Ordering |
-|:----------------------:|:-----:|:----------------------:|:-------------------------:|
-| VideoChat2 (Vicuna)    | 0.410 |          0.490         |           0.573           |
-| VideoChat2 (Mistral)   | 0.524 |          0.348         |           0.579           |
-| VideoChat2 (Phi3)      | 0.468 |          0.552         |           0.522           |
-| mPLUG-Owl3             | 0.596 |          0.641         |           0.707           |
-| LLaVA-NeXT-Video (7B)  | 0.509 |          0.518         |           0.620           |
-| LLaVA-NeXT-Video (32B) | 0.663 |          0.641         |           0.747           |
-| VideoLLaMA2 (7B)       | 0.541 |          0.564         |           0.622           |
-| VideoLLaMA2 (72B)      | 0.647 |          0.787         |           0.760           |
-| GPT-4o                 | 0.772 |          0.840         |           0.826           |
-| Gemini-1.5 Flash       | 0.657 |          0.738         |           0.745           |
-| Gemini-1.5 Pro         | 0.671 |          0.765         |           0.753           |
+| VLM | MCQA | Naive Caption Ordering | Relative Caption Ordering |
+|:---:|:---:|:---:|:---:|
+| VideoChat2 (Vicuna) | 0.426 | 0.486 | 0.577 |
+| VideoChat2 (Mistral) | 0.443 | 0.503 | 0.475 |
+| VideoChat2 (Phi) | 0.514 | 0.626 | 0.612 |
+| mPLUG-Owl3 | 0.596 | 0.641 | 0.707 |
+| LLaVA-NeXT-Video (7B) | 0.509 | 0.518 | 0.620 |
+| LLaVA-NeXT-Video (32B) | 0.663 | 0.641 | 0.747 |
+| VideoLLaMA2 (7B) | 0.541 | 0.564 | 0.622 |
+| VideoLLaMA2 (72B) | 0.647 | 0.787 | 0.760 |
+| MiniCPM-V 2.6 | 0.377 | 0.530 | 0.523 |
+| LongVU | **0.795** | 0.453 | **0.846** |
+| InternVL2.5 (8B) | 0.773 | 0.475 | 0.827 |
+| InternVL2.5 (26B) | 0.742 | 0.498 | 0.775 |
+| Qwen2.5-VL (7B) | 0.760 | **0.825** | 0.826 |
+| Qwen2.5-VL (32B) | 0.732 | 0.811 | 0.800 |
+| Qwen2.5-VL (72B) | 0.740 | 0.807 | 0.793 |
+| GPT-4o | 0.772 | 0.840 | 0.826 |
+| GPT-4.1 | 0.777 | 0.845 | 0.834 |
+| Gemini-1.5 Flash | 0.657 | 0.738 | 0.745 |
+| Gemini-1.5 Pro | 0.671 | 0.765 | 0.753 |
+| Gemini-2.5 Flash | 0.814 | 0.875 | 0.860 |
+| Gemini-2.5 Pro | <u>0.814</u> | <u>0.876</u> | <u>0.861</u> |
 
 # Acknowledgements
 We sincerely thank the original authors of the following works for making their codebases publicly available, enabling the evaluation of their models on our VidHal benchmark:
@@ -118,6 +128,7 @@ We sincerely thank the original authors of the following works for making their 
 - [VideoLLaMA2](https://github.com/DAMO-NLP-SG/VideoLLaMA2)
 - [mPLUG-Owl3](https://github.com/X-PLUG/mPLUG-Owl)
 - [LLaVA-NeXT-Video](https://github.com/LLaVA-VL/LLaVA-NeXT)
+- [LongVU](https://github.com/Vision-CAIR/LongVU)
 
 # Citation
 If you find our work valuable or useful for your research, please consider citing it.
