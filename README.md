@@ -3,6 +3,8 @@
 VidHal is a benchmark designed to evaluate and analyze video-based hallucinations in Vision-Language Models (VLMs). It features a diverse set of videos covering five key temporal aspects: _Action, Attribute, Object, Event Order_, and _Direction_. To facilitate fine-grained evaluation of video hallucinations, we introduce a novel task of **caption ordering** alongside multiple-choice question answering. For more details, refer to our paper: [VidHal: Benchmarking Hallucinations in Vision LLMs](https://arxiv.org/abs/2411.16771).
 
 ## Updates
+- [23/04/2026] Added support for several new models in our evaluation pipeline: InternVL2.5, LongVU, MiniCPM-V2.6, and Qwen2.5-VL.
+- [21/04/2026] Our paper is accepted to TMLR 2026! 🎉
 - [02/12/2024] Inference and evaluation code for the evaluated models in our paper are now available.
 - [25/11/2024] The VidHal dataset and evaluation pipeline are now available. Instructions for evaluating your model using our code can be found in the [Model Evaluation](#model-evaluation) section.
 

@@ -50,7 +50,53 @@ def get_inference_pipeline(name, task) -> VidHalInferencePipeline:
             "naive_ordering" : MovieChatNaiveOrderingInferencePipeline,
             "relative_ordering" : MovieChatRelativeOrderingInferencePipeline
         }[task]
-    
+    elif "intern-vl25" in name:
+        from pipelines.inference.intern_vl import (
+            InternVL25MCQAInferencePipeline, InternVL25NaiveOrderingInferencePipeline, InternVL25RelativeOrderingInferencePipeline
+        )
+        return {
+            "mcqa" : InternVL25MCQAInferencePipeline,
+            "naive_ordering" : InternVL25NaiveOrderingInferencePipeline,
+            "relative_ordering" : InternVL25RelativeOrderingInferencePipeline
+        }[task]
+    elif "qwen-vl" in name:
+        from pipelines.inference.qwen_vl import (
+            Qwen25VLMCQAInferencePipeline, Qwen25VLNaiveOrderingInferencePipeline, Qwen25VLRelativeOrderingInferencePipeline
+        )
+        return {
+            "mcqa" : Qwen25VLMCQAInferencePipeline,
+            "naive_ordering" : Qwen25VLNaiveOrderingInferencePipeline,
+            "relative_ordering" : Qwen25VLRelativeOrderingInferencePipeline
+        }[task]
+    elif "minicpm" in name:
+        from pipelines.inference.minicpm import (
+            MiniCPMMCQAInferencePipeline, MiniCPMNaiveOrderingInferencePipeline, MiniCPMRelativeOrderingInferencePipeline
+        )
+        return {
+            "mcqa" : MiniCPMMCQAInferencePipeline,
+            "naive_ordering" : MiniCPMNaiveOrderingInferencePipeline,
+            "relative_ordering" : MiniCPMRelativeOrderingInferencePipeline
+        }[task]
+    elif "longvu" in name:
+        from pipelines.inference.longvu import (
+            LongVUMCQAInferencePipeline, LongVUNaiveOrderingInferencePipeline, LongVURelativeOrderingInferencePipeline
+        )
+        return {
+            "mcqa" : LongVUMCQAInferencePipeline,
+            "naive_ordering" : LongVUNaiveOrderingInferencePipeline,
+            "relative_ordering" : LongVURelativeOrderingInferencePipeline
+        }[task]
+
+    elif "together" in name:
+        from pipelines.inference.together import (
+            TogetherAIMCQAInferencePipeline, TogetherAINaiveOrderingInferencePipeline, TogetherAIRelativeOrderingInferencePipeline
+        )
+        return {
+            "mcqa" : TogetherAIMCQAInferencePipeline,
+            "naive_ordering" : TogetherAINaiveOrderingInferencePipeline,
+            "relative_ordering" : TogetherAIRelativeOrderingInferencePipeline
+        }[task]
+
     return {
         "random" : {
             "mcqa" : RandomMCQAInferencePipeline,
@@ -58,6 +104,11 @@ def get_inference_pipeline(name, task) -> VidHalInferencePipeline:
             "relative_ordering" : RandomRelativeOrderingInferencePipeline
         },
         "gpt-4o" : {
+            "mcqa" : GPT4oMCQAInferencePipeline,
+            "naive_ordering" : GPT4oNaiveOrderingInferencePipeline,
+            "relative_ordering" : GPT4oRelativeOrderingInferencePipeline
+        },
+        "gpt-4.1" : {
             "mcqa" : GPT4oMCQAInferencePipeline,
             "naive_ordering" : GPT4oNaiveOrderingInferencePipeline,
             "relative_ordering" : GPT4oRelativeOrderingInferencePipeline
@@ -72,4 +123,14 @@ def get_inference_pipeline(name, task) -> VidHalInferencePipeline:
             "naive_ordering" : GeminiNaiveOrderingInferencePipeline,
             "relative_ordering" : GeminiRelativeOrderingInferencePipeline
         },
+        "gemini-2.5-flash" : {
+            "mcqa" : GeminiMCQAInferencePipeline,
+            "naive_ordering" : GeminiNaiveOrderingInferencePipeline,
+            "relative_ordering" : GeminiRelativeOrderingInferencePipeline
+        },
+        "gemini-2.5-pro" : {
+            "mcqa" : GeminiMCQAInferencePipeline,
+            "naive_ordering" : GeminiNaiveOrderingInferencePipeline,
+            "relative_ordering" : GeminiRelativeOrderingInferencePipeline
+        }
     }[name][task]

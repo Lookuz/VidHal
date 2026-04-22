@@ -1,4 +1,8 @@
+import os
+import time
+import google.api_core.exceptions
 import google.generativeai as genai
+from tqdm import tqdm
 
 from dataset import VidHalDataset
 from pipelines.inference.base import (
@@ -40,24 +44,50 @@ class GeminiInferencePipeline(VidHalInferencePipeline):
         )
 
     def upload_file(self, video_path):
-        return genai.upload_file(path=video_path)
+        video_name = os.path.splitext(os.path.basename(video_path))[0].replace("_", "-")
+        return genai.upload_file(path=video_path, name=video_name)
+
+    def format_prompt(self, main_prompt, options_prompt, system_prompt=None, *args, **kwargs):
+        return f"{main_prompt}\n\n{options_prompt}", system_prompt
     
-    def generate_response(self, main_prompt, system_prompt=None, image_path=None, *args, **kwargs):
-        video_file = self.upload_file(image_path)
-
-        while video_file.state.name == "PROCESSING":
-            video_file = genai.get_file(video_file.name)
-
+    def generate_response(self, video, main_prompt, system_prompt=None, image_path=None, *args, **kwargs):        
+        video_name = os.path.splitext(os.path.basename(image_path))[0].replace("_", "-")
         try:
-            response = self.client.generate_content([
-                system_prompt, video_file, main_prompt]
-            )
+            video_file = genai.get_file(f"{video_name}")
+            print(f"Using cached video file: {video_file.name}, state: {video_file.state.name}")
+        except Exception as e:
+            video_file = self.upload_file(image_path)
 
-            video_file.delete()
+        max_retries, retry_count = kwargs.get('max_retries', 5), 0
 
-            return response.text
-        except:
-            return ""
+        while retry_count < max_retries:
+            try:
+                # Check if video is still processing
+                if hasattr(video_file, 'state') and video_file.state.name == 'PROCESSING':
+                    time.sleep(2)
+                    continue
+
+                response = self.client.generate_content([
+                    system_prompt, video_file, main_prompt]
+                )
+
+                return response.text
+                
+            except google.api_core.exceptions.ResourceExhausted as e:
+                # Rate limit hit (429 error)
+                print(f"Rate limit hit, waiting 1 minute... (attempt {retry_count + 1})")
+                time.sleep(60)
+                retry_count += 1
+                
+            except Exception as e:
+                print(f"Error generating response: {e}")
+                retry_count += 1
+                if retry_count >= max_retries:
+                    break
+                time.sleep(10)  # Short wait for other errors
+
+        print(f"Max retries ({max_retries}) exceeded")
+        return ""
 
 class GeminiMCQAInferencePipeline(GeminiInferencePipeline, VidHalMCQAInferencePipeline):
     def __init__(self, model, api_key, dataset, num_captions=3, option_display_order=None, generation_config=..., *args, **kwargs):

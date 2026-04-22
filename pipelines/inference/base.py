@@ -150,13 +150,16 @@ class VidHalRelativeOrderingInferencePipeline(VidHalMCQAInferencePipeline):
             self.main_prompt_instruction, options_prompt, self.system_prompt_instruction
         )
         response = self.generate_response(
-            self.model, video, main_prompt=main_prompt, system_prompt=system_prompt, generation_config=self.generation_config,
+            video=video, main_prompt=main_prompt, system_prompt=system_prompt, generation_config=self.generation_config,
             image_path=video_path
         )
 
         # Process response and map back to original
-        response = self.process_response(response)
-        response = remapped_to_original[response]
+        try:
+            response = self.process_response(response)
+            response = remapped_to_original[response]
+        except KeyError:
+            response = sorted(options, key=lambda x: int(option_to_rank[x]))[-1]
 
         return response
     

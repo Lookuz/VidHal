@@ -63,7 +63,24 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
 
         self.num_captions = num_captions
         self.i_normalize_value = self.compute_dcg(list(range(1, self.num_captions + 1))) if i_normalize else None
-        self.r_normalize_value = self.compute_dcg(reversed(list(range(1, self.num_captions + 1)))) if r_normalize else None
+        
+        # Modified r_normalize_value calculation
+        if r_normalize:
+            self.r_normalize_value = {}
+            current_list = list(reversed(list(range(1, self.num_captions + 1))))
+            
+            # Process lists of decreasing length by specific removal pattern to account for varying order length predictions
+            while len(current_list) > 0:
+                dcg_value = self.compute_dcg(current_list)
+                self.r_normalize_value[len(current_list)] = dcg_value
+                
+                # Remove second-to-last element if list has more than 2 elements, otherwise remove the last element
+                if len(current_list) > 2:
+                    del current_list[-2]  
+                else:
+                    del current_list[-1]  
+        else:
+            self.r_normalize_value = None
 
     def compute_dcg(self, order):
         """
@@ -76,16 +93,17 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
         """
         Takes in a sequence of options representing the captions
         """
-        # NOTE: Ignore partial ordering or repeated ordering
+        # Ignore partial ordering or repeated ordering
         if len(order) != self.num_captions or len(set(order)) != self.num_captions: 
             return 0.
         order = [option_to_rank[x] for x in order] 
-
         ndcg = self.compute_dcg(order)
+
+        r_normalize_value = self.r_normalize_value[len(order)]
         if self.r_normalize_value is not None:
-            ndcg -= self.r_normalize_value
+            ndcg -= r_normalize_value
         if self.i_normalize_value is not None:
-            ndcg = ndcg / (self.i_normalize_value - self.r_normalize_value) if self.i_normalize_value is not None else ndcg / self.i_normalize_value
+            ndcg = ndcg / (self.i_normalize_value - r_normalize_value) if self.i_normalize_value is not None else ndcg / self.i_normalize_value
 
         return ndcg
     
@@ -102,6 +120,9 @@ class VidHalCaptionOrderingEvaluationPipeline(EvaluationPipeline):
             option_to_rank = self.option_display_order[video_id]
             # Predictions expected to be either in comma separated string form (e.g 'A, B, C') or list form (e.g. ['A', 'B', 'C'])
             prediction = self.predictions[video_id]
+            # if len(prediction) == 0:
+            #     continue
+
             if not isinstance(prediction, list):
                 prediction_key = prediction
                 prediction = [x.strip() for x in prediction.split(",")]
